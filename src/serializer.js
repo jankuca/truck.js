@@ -60,9 +60,7 @@ Serializer.prototype.processVariableDeclaration_ = function (statement) {
 Serializer.prototype.processExpression_ = function (expression) {
   switch (expression.type) {
   case 'AssignmentExpression':
-    this.processExpression_(expression.left);
-    this.tokens.push(expression.operator);
-    this.processExpression_(expression.right);
+    this.processAssignmentExpression_(expression);
     break;
 
   case 'Identifier':
@@ -70,47 +68,67 @@ Serializer.prototype.processExpression_ = function (expression) {
     break;
 
   case 'Literal':
-    switch (typeof expression.value) {
-    case 'number':
-      this.tokens.push(expression.value);
-      break;
-
-    case 'string':
-      this.tokens.push('"');
-      this.processStringLiteralValue_(expression.value);
-      this.tokens.push('"');
-      break;
-
-    case 'boolean':
-      this.tokens.push(expression.value ? '!0' : '!1');
-      break;
-    }
+    this.processLiteral_(expression);
     break;
 
   case 'MemberExpression':
-    this.processExpression_(expression.object);
-
-    var array_access = (expression.computed
-        && expression.property.type !== 'Literal'
-        && typeof expression.property.value !== 'string');
-
-    if (array_access) {
-      this.tokens.push('[');
-      this.processExpression_(expression.property);
-      this.tokens.push(']');
-    } else {
-      this.tokens.push('.');
-      if (expression.property.type === 'Literal'
-          && typeof expression.property.value === 'string') {
-        this.processStringLiteralValue_(expression.property.value);
-      } else {
-        this.processExpression_(expression.property);
-      }
-    }
+    this.processMemberExpression_(expression);
     break;
 
   default:
     throw new Error('Unknown expression type: ' + expression.type);
+  }
+};
+
+
+Serializer.prototype.processAssignmentExpression_ = function (expression) {
+  this.processExpression_(expression.left);
+  this.tokens.push(expression.operator);
+  this.processExpression_(expression.right);
+};
+
+
+Serializer.prototype.processLiteral_ = function (literal) {
+  switch (typeof literal.value) {
+  case 'number':
+    this.tokens.push(literal.value);
+    break;
+
+  case 'string':
+    this.tokens.push('"');
+    this.processStringLiteralValue_(literal.value);
+    this.tokens.push('"');
+    break;
+
+  case 'boolean':
+    this.tokens.push(literal.value ? '!0' : '!1');
+    break;
+
+  default:
+    throw new Error('Unknown literal type: ' + (typeof literal.value));
+  }
+};
+
+
+Serializer.prototype.processMemberExpression_ = function (expression) {
+  this.processExpression_(expression.object);
+
+  var array_access = (expression.computed
+      && expression.property.type !== 'Literal'
+      && typeof expression.property.value !== 'string');
+
+  if (array_access) {
+    this.tokens.push('[');
+    this.processExpression_(expression.property);
+    this.tokens.push(']');
+  } else {
+    this.tokens.push('.');
+    if (expression.property.type === 'Literal'
+        && typeof expression.property.value === 'string') {
+      this.processStringLiteralValue_(expression.property.value);
+    } else {
+      this.processExpression_(expression.property);
+    }
   }
 };
 
