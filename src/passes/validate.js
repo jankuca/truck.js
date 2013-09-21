@@ -6,11 +6,12 @@ module.exports = function (ast) {
 
 
 var Validator = function () {
-  this.global_scope = {};
-  this.scope = this.global_scope;
 };
 
 Validator.prototype.validate = function (ast) {
+  this.global_scope = {};
+  this.scope = this.global_scope;
+
   this.validateBlock_(ast);
 };
 
