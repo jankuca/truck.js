@@ -63,6 +63,10 @@ Serializer.prototype.processExpression_ = function (expression) {
     this.processAssignmentExpression_(expression);
     break;
 
+  case 'CallExpression':
+    this.processCallExpression_(expression);
+    break;
+
   case 'Identifier':
     this.tokens.push(expression.name);
     break;
@@ -85,6 +89,21 @@ Serializer.prototype.processAssignmentExpression_ = function (expression) {
   this.processExpression_(expression.left);
   this.tokens.push(expression.operator);
   this.processExpression_(expression.right);
+};
+
+
+Serializer.prototype.processCallExpression_ = function (expression) {
+  this.processExpression_(expression.callee);
+
+  this.tokens.push('(');
+  expression.arguments.forEach(function (argument, i) {
+    this.tokens.push(argument.name);
+
+    if (i !== expression.arguments.length - 1) {
+      this.tokens.push(',');
+    }
+  }, this);
+  this.tokens.push(')');
 };
 
 
