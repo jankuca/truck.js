@@ -1,41 +1,52 @@
 
 module.exports = function (ast) {
-  var global_scope = {};
-  validateBlock(ast, global_scope);
+  var validator = new Validator();
+  validator.validate(ast);
 };
 
 
-var validateBlock = function (block, parent_scope) {
+var Validator = function () {
+  this.global_scope = {};
+  this.scope = this.global_scope;
+};
+
+Validator.prototype.validate = function (ast) {
+  this.validateBlock_(ast);
+};
+
+
+Validator.prototype.validateBlock_ = function (block) {
   if (!block.body) return;
   if (!Array.isArray(block.body) && block.body.type === 'BlockStatement') {
-    return validateBlock(block.body, parent_scope);
+    return this.validateBlock_(block.body);
   }
 
+  var parent_scope = this.scope;
   var scope = Object.create(parent_scope);
 
   block.body.forEach(function (statement) {
     switch (statement.type) {
     case 'ExpressionStatement':
-      validateExpression(statement.expression, scope);
+      this.validateExpression_(statement.expression);
       break;
 
     case 'Identifier':
-      validateScopeKey(statement.name, scope);
+      this.validateScopeKey_(statement.name);
       break;
 
     case 'IfStatement':
       if (statement.consequent) {
-        validateBlock(statement.consequent, scope);
+        this.validateBlock_(statement.consequent);
       }
       if (statement.alternate) {
-        validateBlock(statement.alternate, scope);
+        this.validateBlock_(statement.alternate);
       }
       break;
 
     case 'VariableDeclaration':
       statement.declarations.forEach(function (declaration) {
-        scope[declaration.id.name] = true;
-      });
+        this.scope[declaration.id.name] = true;
+      }, this);
       break;
 
     case 'WithStatement':
@@ -44,26 +55,28 @@ var validateBlock = function (block, parent_scope) {
     default:
       throw new Error('Unknown statement type: ' + statement.type);
     }
-  });
+  }, this);
+
+  this.scope = parent_scope;
 };
 
-var validateExpression = function (expression, scope) {
+Validator.prototype.validateExpression_ = function (expression) {
   var key;
 
   switch (expression.type) {
   case 'AssignmentExpression':
-    validateLeftExpressionSide(expression.left, scope);
+    this.validateLeftExpressionSide_(expression.left);
     break;
 
   case 'CallExpression':
     expression.arguments.forEach(function (arg) {
-      validateExpression(arg, scope);
-    });
-    validateCalleeExpression(expression.callee, scope);
+      this.validateExpression_(arg);
+    }, this);
+    this.validateCalleeExpression_(expression.callee);
     break;
 
   case 'Identifier':
-      validateScopeKey(expression.name, scope);
+      this.validateScopeKey_(expression.name);
       break;
 
   default:
@@ -71,17 +84,17 @@ var validateExpression = function (expression, scope) {
   }
 };
 
-var validateLeftExpressionSide = function (expression, scope) {
+Validator.prototype.validateLeftExpressionSide_ = function (expression) {
   switch (expression.type) {
   case 'Identifier':
-    validateScopeKey(expression.name, scope);
+    this.validateScopeKey_(expression.name);
   }
 };
 
-var validateCalleeExpression = function (callee, scope) {
+Validator.prototype.validateCalleeExpression_ = function (callee) {
   switch (callee.type) {
   case 'FunctionExpression':
-    var child_scope = Object.create(scope);
+    var child_scope = Object.create(this.scope);
     callee.params.forEach(function (param) {
       if (param.type !== 'Identifier') {
         throw new Error('Unknown function argument type: ' + param.type);
@@ -89,11 +102,14 @@ var validateCalleeExpression = function (callee, scope) {
       child_scope[param.name] = true;
     });
 
-    validateBlock(callee, child_scope);
+    var parent_scope = this.scope;
+    this.scope = child_scope;
+    this.validateBlock_(callee);
+    this.scope = parent_scope;
     break;
 
   case 'Identifier':
-    validateScopeKey(callee.name);
+    this.validateScopeKey_(callee.name);
     break;
 
   default:
@@ -101,8 +117,8 @@ var validateCalleeExpression = function (callee, scope) {
   }
 };
 
-var validateScopeKey = function (key, scope) {
-  if (!scope[key]) {
+Validator.prototype.validateScopeKey_ = function (key) {
+  if (!this.scope[key]) {
     throw new ReferenceError(key + ' is not defined');
   }
 };
