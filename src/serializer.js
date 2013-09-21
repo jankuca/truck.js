@@ -22,19 +22,23 @@ Serializer.prototype.processBlock_ = function (block) {
 
   block.body.forEach(function (statement) {
     switch (statement.type) {
-    case 'VariableDeclaration':
-      this.processVariableDeclaration_(statement);
-      break;
-
     case 'ExpressionStatement':
       this.processExpression_(statement.expression);
+      this.tokens.push(';');
+      break;
+
+    case 'FunctionDeclaration':
+      this.processFunctionDeclaration_(statement);
+      break;
+
+    case 'VariableDeclaration':
+      this.processVariableDeclaration_(statement);
+      this.tokens.push(';');
       break;
 
     default:
       throw new Error('Unknown statement type: ' + statement.type);
     }
-
-    this.tokens.push(';');
   }, this);
 };
 
@@ -54,6 +58,25 @@ Serializer.prototype.processVariableDeclaration_ = function (statement) {
       this.tokens.push(',');
     }
   }, this);
+};
+
+
+Serializer.prototype.processFunctionDeclaration_ = function (statement) {
+  this.tokens.push('function', ' ', statement.id.name);
+
+  this.tokens.push('(');
+  statement.params.forEach(function (param, i) {
+    this.tokens.push(param.name);
+
+    if (i !== statement.params.length - 1) {
+      this.tokens.push(',');
+    }
+  }, this);
+  this.tokens.push(')');
+
+  this.tokens.push('{');
+  this.processBlock_(statement.body);
+  this.tokens.push('}');
 };
 
 
