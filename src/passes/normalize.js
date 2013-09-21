@@ -9,10 +9,8 @@ var Normalizer = function () {
 };
 
 Normalizer.prototype.normalize = function (ast) {
-  this.var_declaration = null;
-  this.var_declaration_stack = [ null ];
-  this.fn_declaration_list = [];
-  this.fn_declaration_list_stack = [ this.fn_declaration_list ];
+  this.var_declarations = [ null ];
+  this.fn_declaration_counts = [ 0 ];
 
   this.traverseBlock_(ast);
 };
@@ -35,15 +33,17 @@ Normalizer.prototype.traverseBlock_ = function (block) {
       break;
 
     case 'FunctionDeclaration':
-      var var_declaration = null;
-      this.var_declaration_stack.push(var_declaration);
-      var fn_declaration_list = [];
-      this.fn_declaration_list_stack.push(fn_declaration_list);
+      body.splice(i, 1);
+      body.splice((this.var_declarations[0] ? 1 : 0) + this.fn_declaration_counts[0], 0, statement);
+      this.fn_declaration_counts[0] += 1;
 
-      this.traverseBlock_(statement);
+      this.var_declarations.unshift(null);
+      this.fn_declaration_counts.unshift(0);
 
-      this.var_declaration = this.var_declaration_stack.pop();
-      this.fn_declaration_list = this.fn_declaration_list_stack.pop();
+      this.traverseBlock_(statement.body);
+
+      this.var_declarations.shift();
+      this.fn_declaration_counts.shift();
       break;
 
     case 'IfStatement':
@@ -73,9 +73,9 @@ Normalizer.prototype.traverseBlock_ = function (block) {
 
       body.splice(i, 1);
 
-      if (this.var_declaration) {
-        var declarations = this.var_declaration.declarations;
-        this.var_declaration.declarations = declarations.concat(
+      if (this.var_declarations[0]) {
+        var declarations = this.var_declarations[0].declarations;
+        this.var_declarations[0].declarations = declarations.concat(
           statement.declarations.map(function (declaration) {
             return {
               type: declaration.type,
@@ -85,7 +85,7 @@ Normalizer.prototype.traverseBlock_ = function (block) {
           })
         );
       } else {
-        this.var_declaration = statement;
+        this.var_declarations[0] = statement;
         body.splice(0, 0, statement);
       }
       break;
@@ -125,15 +125,13 @@ Normalizer.prototype.traverseExpression_ = function (expression) {
 Normalizer.prototype.traverseCalleeExpression_ = function (callee) {
   switch (callee.type) {
   case 'FunctionExpression':
-    var var_declaration = null;
-    this.var_declaration_stack.push(var_declaration);
-    var fn_declaration_list = [];
-    this.fn_declaration_list_stack.push(fn_declaration_list);
+    this.var_declarations.unshift(null);
+    this.fn_declaration_counts.unshift(0);
 
     this.traverseBlock_(callee);
 
-    this.var_declaration = this.var_declaration_stack.pop();
-    this.fn_declaration_list = this.fn_declaration_list_stack.pop();
+    this.var_declarations.shift();
+    this.fn_declaration_counts.shift();
     break;
 
   case 'Identifier':
