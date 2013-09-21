@@ -120,7 +120,7 @@ Serializer.prototype.processCallExpression_ = function (expression) {
 
   this.tokens.push('(');
   expression.arguments.forEach(function (argument, i) {
-    this.tokens.push(argument.name);
+    this.processExpression_(argument);
 
     if (i !== expression.arguments.length - 1) {
       this.tokens.push(',');

@@ -50,17 +50,17 @@ describe('serializer', function () {
 
 
   it('should serialize call expressions', function () {
-    var ast = Truck.parse('a(); a.b.c(arg1, arg2);');
+    var ast = Truck.parse('a(); a.b.c(arg1, arg2); d("x");');
 
     var output = Serializer.serialize(ast);
-    expect(output).to.be('a();a.b.c(arg1,arg2);');
+    expect(output).to.be('a();a.b.c(arg1,arg2);d("x");');
   });
 
 
   it('should serialize function declarations', function () {
-    var ast = Truck.parse('function a() {} function b(arg1, arg2) {}');
+    var ast = Truck.parse('function a() { alert("hey"); } function b(arg1, arg2) {}');
 
     var output = Serializer.serialize(ast);
-    expect(output).to.be('function a(){}function b(arg1,arg2){}');
+    expect(output).to.be('function a(){alert("hey");}function b(arg1,arg2){}');
   });
 });
