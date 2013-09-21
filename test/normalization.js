@@ -1,4 +1,4 @@
-var normalize = pass('normalize');
+var normalize = Truck.pass('normalize');
 
 describe('normalization', function () {
   describe('hoisting', function () {

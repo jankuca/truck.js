@@ -1,4 +1,4 @@
-var validate = pass('validate');
+var validate = Truck.pass('validate');
 
 describe('validation', function () {
   describe('strict mode', function () {
