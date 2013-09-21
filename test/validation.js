@@ -1,3 +1,4 @@
+var validate = pass('validate');
 
 describe('validation', function () {
   describe('strict mode', function () {
@@ -9,11 +10,11 @@ describe('validation', function () {
       var ast_b = Truck.parse(code_b);
 
       expect(function () {
-        Truck.validate(ast_a);
+        validate(ast_a);
       }).to.throwError(/with/);
 
       expect(function () {
-        Truck.validate(ast_b);
+        validate(ast_b);
       }).to.throwError(/with/);
     });
   });
@@ -24,7 +25,7 @@ describe('validation', function () {
       var ast = Truck.parse(code);
 
       expect(function () {
-        Truck.validate(ast);
+        validate(ast);
       }).to.throwError(ReferenceError);
     });
 
@@ -33,7 +34,7 @@ describe('validation', function () {
       var ast = Truck.parse(code);
 
       expect(function () {
-        Truck.validate(ast);
+        validate(ast);
       }).to.throwError(/\bb\b/);
     });
   });
