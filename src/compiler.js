@@ -17,15 +17,15 @@ Compiler.prototype.use = function (pass) {
 };
 
 Compiler.prototype.parseFile = function (filename) {
-  if (this.running_) {
-    throw new Error('New source code cannot be added during compilation');
-  }
-
   var code = fs.readFileSync(filename, 'utf8');
   this.parse(code);
 };
 
 Compiler.prototype.parse = function (code) {
+  if (this.running_) {
+    throw new Error('New source code cannot be added during compilation');
+  }
+
   var ast_part = esprima.parse(code);
   this.extendAst_(ast_part);
 };
