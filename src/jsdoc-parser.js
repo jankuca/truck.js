@@ -1,7 +1,5 @@
 
-var JSDocParser = function () {
-
-};
+var JSDocParser = {};
 
 
 var JSDocAnnotationTypes = {

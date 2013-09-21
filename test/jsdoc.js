@@ -1,6 +1,5 @@
 var JSDocParser = require('../src/jsdoc-parser');
 
-
 describe('JSDoc', function () {
   describe('parser', function () {
     it('should parse descriptions', function () {
