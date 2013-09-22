@@ -1,13 +1,21 @@
 {
   "name": "truck.js",
   "version": "0.0.0",
+
+  "main": "./src/truck",
+  "bin": {
+    "truck": "./bin/truck"
+  },
+
   "dependencies": {
-    "esprima": "*"
+    "esprima": "*",
+    "optimist": "*"
   },
   "devDependencies": {
     "mocha": "*",
     "expect.js": "*"
   },
+
   "scripts": {
     "test": "./node_modules/.bin/mocha test -r test/globals.js -R spec"
   }

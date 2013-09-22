@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+
+var cmd = require('optimist');
+cmd = cmd.string('js').demand('js').describe('JavaScript source file to compile');
+cmd = cmd.string('js_out').demand('js_out').describe('Output file path');
+cmd = cmd.string('pass').describe('Compiler pass to apply');
+
+var args = cmd.argv;
+
+var truck = require('../');
+var compiler = new truck.Compiler();
+var serializer = new truck.Serializer();
+
+(Array.isArray(args['js']) ? args['js'] : [ args['js'] ]).forEach(function (filename) {
+  compiler.parseFile(filename);
+});
+
+if (args['pass']) {
+  (Array.isArray(args['pass']) ? args['pass'] : [ args['pass'] ]).forEach(function (name) {
+    compiler.use(name);
+  });
+}
+
+
+var ast = compiler.run();
+var result = serializer.serialize(ast);
+
+var fs = require('fs');
+fs.writeFileSync(args['js_out'], result, 'utf8');

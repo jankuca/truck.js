@@ -8,9 +8,15 @@ This is an experimental node.js project trying to achieve Google Closure Compile
 
 ## Installation
 
-    $ npm install truck.js
+    $ npm install -g truck.js
 
 ## Usage
+
+There is the `./bin/truck` executable installed via NPM as `truck`.
+
+    $ truck --js input.js --js_out output.js --pass flatten
+
+The Compiler API is also exposed for requiring:
 
     var truck = require('truck.js');
     var compiler = new truck.Compiler();
