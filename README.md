@@ -20,7 +20,6 @@ This is an experimental node.js project trying to achieve Google Closure Compile
     compiler.parseFile('./file2.js');
 
     compiler.use(truck.pass('normalize'));
-    compiler.use(truck.pass('validate'));
 
     var ast = compiler.run();
     var result = serializer.serialize(ast);

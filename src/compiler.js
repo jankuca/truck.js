@@ -6,6 +6,8 @@ var Compiler = function () {
   this.running_ = false;
   this.ast_ = { type: 'Program', body: [] };
   this.passes_ = [];
+
+  this.parse("'use strict';")
 };
 
 Compiler.prototype.use = function (pass) {
@@ -38,6 +40,8 @@ Compiler.prototype.run = function () {
   this.running_ = true;
 
   var ast = this.ast_;
+  ast.body.shift(); // remove 'use strict';
+
   this.passes_.forEach(function (pass) {
     ast = pass(ast) || ast;
   });
