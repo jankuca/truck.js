@@ -93,4 +93,30 @@ describe('flattening', function () {
     expect(call.callee.type).to.be('Identifier');
     expect(call.callee.name).to.be('a$b$c');
   });
+
+
+  it('should flatten references to flattened structures in child scopes', function () {
+    var code = 'var a; a = {}; a.b = 4; function x() { a.b = 5; }';
+    var ast = Truck.parse(code);
+
+    flatten(ast);
+
+    expect(ast.body[0].type).to.be('VariableDeclaration');
+    expect(ast.body[1].type).to.be('ExpressionStatement');
+    expect(ast.body[1].expression.type).to.be('AssignmentExpression');
+    expect(ast.body[2].type).to.be('ExpressionStatement');
+    expect(ast.body[2].expression.type).to.be('AssignmentExpression');
+    expect(ast.body[3].type).to.be('FunctionDeclaration');
+
+    var fn_body = ast.body[3].body.body;
+    expect(fn_body.length).to.be(1);
+    expect(fn_body[0].type).to.be('ExpressionStatement');
+
+    var assignment = fn_body[0].expression;
+    expect(assignment.type).to.be('AssignmentExpression');
+    expect(assignment.left.type).to.be('Identifier');
+    expect(assignment.left.name).to.be('a$b');
+    expect(assignment.right.type).to.be('Literal');
+    expect(assignment.right.value).to.be(5);
+  });
 });
