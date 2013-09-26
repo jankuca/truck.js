@@ -9,6 +9,7 @@
 
   "dependencies": {
     "esprima": "*",
+    "jsdoc-parser": "*",
     "optimist": "*"
   },
   "devDependencies": {
